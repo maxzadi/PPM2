@@ -139,7 +139,10 @@ fun HomeScreen(){
                         ){popUpTo<Login>{inclusive = true}}
                                }, modifier = Modifier
                             .width(250.dp)
-                            .background(shape = CircleShape, color = MaterialTheme.colorScheme.primary)
+                            .background(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.primary
+                            )
                         ) { Text("Entrar") }
                     }
 
@@ -181,89 +184,10 @@ fun HomeScreen(){
                             )
                         )
                     }
-                ) {
-                        innerPadding ->
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(innerPadding),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        items(
-                            items = personajes,
-                            key = { personaje -> personaje.id }
-                        ) { personaje ->
-                            Card(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        navController.navigate(PersonajeID( id = personaje.id))
-                                    },
-                                colors = CardDefaults.cardColors(
-                                    containerColor =
-                                        MaterialTheme.colorScheme.surface
-                                )
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    AsyncImage(
-                                        model = personaje.imagen,
-                                        contentDescription =
-                                            "Imagen de ${personaje.nombre}",
-                                        modifier = Modifier
-                                            .size(80.dp)
-                                            .clip(RoundedCornerShape(12.dp)),
-                                        contentScale = ContentScale.Crop
-                                    )
-
-                                    Column(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(start = 12.dp)
-                                    ) {
-                                        Text(
-                                            text = personaje.nombre,
-                                            style =
-                                                MaterialTheme.typography.titleMedium
-                                        )
-
-                                        Text(
-                                            text =
-                                                "${personaje.especie} - ${personaje.status}",
-                                            style =
-                                                MaterialTheme.typography.bodyMedium
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                ) {}
             }
 
-            composable<PersonajeID>{backStackEntry ->
-                val ruta = backStackEntry.toRoute<PersonajeID>()
-
-                val personaje = personajes.firstOrNull {
-                    it.id == ruta.id
-                }
-
-                if (personaje == null) {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("Personaje no encontrado")
-                    }
-
-                    return@composable
-                }
-                //val personaje = personajes.get(0)
+            composable<PersonajeID>{
                 Scaffold(
                     topBar = {
                         TopAppBar(
@@ -286,49 +210,7 @@ fun HomeScreen(){
                             )
                         )
                     }
-                ) {innerPadding ->
-                    Column(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding,)
-                        ,
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally) {
-                        AsyncImage(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .size(200.dp),
-                            model = personaje.imagen,
-                            contentDescription =
-                                "Imagen de ${personaje.nombre}",
-                            contentScale = ContentScale.Crop
-                        )
-                        Card(
-                            modifier = Modifier
-                                .width(280.dp)
-                                .padding(16.dp)
-                            ,
-                            colors = CardDefaults.cardColors(
-                                containerColor =
-                                    MaterialTheme.colorScheme.surface
-                            )
-                        ){Row(modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.Center) {
-                            Column(modifier = Modifier.weight(1f),
-                                verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                                Text("Species:")
-                                Text("Status:")
-                                Text("Gender:")
-                            }
-                            Column(modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.End,
-                                verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                                Text(personaje.especie)
-                                Text(personaje.status)
-                                Text(personaje.genero)
-                            }
-                        }
-                        }
-                    }
+                ) {
 
                 }
             }
