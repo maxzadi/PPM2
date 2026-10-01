@@ -1,58 +1,50 @@
 package com.example.movilab7
 
+import LocationDb
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import kotlinx.serialization.Serializable
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import coil3.compose.AsyncImage
 import com.example.movilab7.ui.theme.Movilab7Theme
+
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.PeopleAlt
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.runtime.getValue
+import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.navigation
+import com.example.movilab7.characters.CharacterScreen
+import com.example.movilab7.characters.PersonajeScreen
+import com.example.movilab7.locations.LocationDetailScreen
+import com.example.movilab7.locations.LocationsScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,6 +89,24 @@ val personajes = listOf<PersonajeDatos>(
     PersonajeDatos(6,"Abadango Cluster Princess", "Alien", "Vivo", "https://rickandmortyapi.com/api/character/avatar/6.jpeg", "Femenino")
 )
 
+//Lab8
+
+@Serializable
+data object CharactersGraph
+
+@Serializable
+data object LocationsGraph
+
+@Serializable
+data object Locations
+
+@Serializable
+data class LocationID(val id: Int)
+
+@Serializable
+data object Profile
+
+val locationDb = LocationDb()
 
 
 
@@ -105,116 +115,134 @@ val personajes = listOf<PersonajeDatos>(
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Preview(showBackground = true)
 @Composable
-fun HomeScreen(){
-    Scaffold(modifier = Modifier.fillMaxSize()) {
-        val navController = rememberNavController()
+fun HomeScreen() {
+    val navController = rememberNavController()
+
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val destinoActual = backStackEntry?.destination
+
+    val mostrarBarra = destinoActual != null &&
+            !destinoActual.hasRoute<Login>()
+
+    // Cambia de pestaña conservando su estado.
+    fun cambiarPestana(ruta: Any) {
+        navController.navigate(ruta) {
+            popUpTo<Characters> {
+                saveState = true
+            }
+
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        bottomBar = {
+            if (mostrarBarra) {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = destinoActual?.hierarchy?.any {
+                            it.hasRoute<CharactersGraph>()
+                        } == true,
+                        onClick = {
+                            cambiarPestana(CharactersGraph)
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.PeopleAlt,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text("Characters") }
+                    )
+
+                    NavigationBarItem(
+                        selected = destinoActual?.hierarchy?.any {
+                            it.hasRoute<LocationsGraph>()
+                        } == true,
+                        onClick = {
+                            cambiarPestana(LocationsGraph)
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Public,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text("Locations") }
+                    )
+
+                    NavigationBarItem(
+                        selected = destinoActual?.hasRoute<Profile>() == true,
+                        onClick = {
+                            cambiarPestana(Profile)
+                        },
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Default.Person,
+                                contentDescription = null
+                            )
+                        },
+                        label = { Text("Profile") }
+                    )
+                }
+            }
+        }
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = Login,
             modifier = Modifier
                 .fillMaxSize()
-        ){
-            composable<Login>{
-                backstackEntry->
-                val destino: Login = backstackEntry.toRoute()
-                val image = painterResource(R.drawable.rick_and_morty)
-                Column(modifier=Modifier
-                    .fillMaxSize()
-                    , horizontalAlignment = Alignment.CenterHorizontally) {
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+        ) {
+            composable<Login> {
+                LoginScreen(navController)
+            }
 
-                    //Imagen
-                    Box(modifier = Modifier
-                        .weight(5f)
-                        , contentAlignment = Alignment.BottomCenter){
-                        Image(contentDescription = "Logo",
-                            painter = image
-                        )
-                    }
-                    //Boton
-                    Box(modifier = Modifier
-                        .weight(4f)
-                        , contentAlignment = Alignment.TopCenter) {
-                        Button({navController.navigate(
-                            route = Characters
-                        ){popUpTo<Login>{inclusive = true}}
-                               }, modifier = Modifier
-                            .width(250.dp)
-                            .background(
-                                shape = CircleShape,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                        ) { Text("Entrar") }
+            // Subgrafo de Characters
+            navigation<CharactersGraph>(
+                startDestination = Characters
+            ) {
+                composable<Characters> {
+                    CharacterScreen(navController)
+                }
+
+                composable<PersonajeID> { entry ->
+                    val ruta = entry.toRoute<PersonajeID>()
+
+                    val personaje = personajes.firstOrNull {
+                        it.id == ruta.id
                     }
 
-                    //Nombre
-                    Box(modifier = Modifier
-                        .weight(1f)
-                        , contentAlignment = Alignment.TopCenter
-                    ) {
-                        Text("Matías Zamora #25760")
-                    }
+                    PersonajeScreen(personaje, navController)
                 }
             }
 
-            composable<Characters>{
-                val activity = LocalContext.current as? Activity
+            // Subgrafo de Locations
+            navigation<LocationsGraph>(
+                startDestination = Locations
+            ) {
+                composable<Locations> {
+                    LocationsScreen(locationDb.getAllLocations(), navController)
+                }
 
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Text("Characters")
-                            }, navigationIcon = {
-                                IconButton(onClick = {
-                                    if (!navController.popBackStack()) {
-                                        activity?.finish()
-                                    }
-                                }) {
-                                    Icon(
-                                        imageVector =
-                                            Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Regresar"
-                                    )
-                                }
-                            }, colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                            )
-                        )
-                    }
-                ) {}
-            }
+                composable<LocationID> { entry ->
+                    val ruta = entry.toRoute<LocationID>()
 
-            composable<PersonajeID>{
-                Scaffold(
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                Text("Character Detail")
-                            }, navigationIcon = {
-                                IconButton(onClick = {navController.popBackStack()
-                                }) {
-                                    Icon(
-                                        imageVector =
-                                            Icons.AutoMirrored.Filled.ArrowBack,
-                                        contentDescription = "Regresar"
-                                    )
-                                }
-                            }, colors = TopAppBarDefaults.topAppBarColors(
-                                containerColor = MaterialTheme.colorScheme.primary,
-                                titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                                navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                                actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                            )
-                        )
-                    }
-                ) {
+                    val location = locationDb.getLocationById(ruta.id)
 
+                    LocationDetailScreen(location, navController)
+
+                }
+
+                // Pantalla independiente
+                composable<Profile> {
+                    PerfilScreen(navController)
                 }
             }
         }
     }
-
 }
