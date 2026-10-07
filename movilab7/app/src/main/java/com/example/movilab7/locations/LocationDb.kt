@@ -1,3 +1,5 @@
+import com.example.movilab7.locations.Location
+
 // import .....Location
 
 class LocationDb {

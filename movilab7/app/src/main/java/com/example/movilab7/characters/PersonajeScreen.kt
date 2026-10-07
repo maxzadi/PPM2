@@ -28,9 +28,46 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.example.movilab7.PersonajeDatos
+import com.example.movilab7.components.ErrorScreen
+import com.example.movilab7.components.LoadingScreen
+
+@Composable
+fun CharacterDetailScreen(
+    navController: NavController,
+    viewModel: CharacterDetailViewModel = viewModel()
+) {
+    val uiState = viewModel.uiState
+        .collectAsStateWithLifecycle()
+        .value
+
+    when {
+        uiState.isLoading -> {
+            LoadingScreen(
+                mensaje = "Cargando personaje...",
+                onClick = viewModel::simulateError
+            )
+        }
+
+        uiState.hasError -> {
+            ErrorScreen(
+                mensaje = "No se pudo cargar el personaje",
+                onRetry = viewModel::loadCharacter
+            )
+        }
+
+        uiState.data != null -> {
+            PersonajeScreen(
+                personaje = uiState.data,
+                navController = navController
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

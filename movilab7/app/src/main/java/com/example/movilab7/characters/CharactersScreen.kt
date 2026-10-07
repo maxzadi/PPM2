@@ -32,14 +32,53 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.example.movilab7.PersonajeDatos
 import com.example.movilab7.PersonajeID
 import com.example.movilab7.personajes
+import com.example.movilab7.components.ErrorScreen
+import com.example.movilab7.components.LoadingScreen
+
+@Composable
+fun CharactersScreen(
+    navController: NavController,
+    viewModel: CharactersViewModel = viewModel()
+
+) {
+    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+
+    when {
+        uiState.isLoading -> {
+            LoadingScreen(
+                mensaje = "Cargando personajes...",
+                onClick = viewModel::simulateError
+            )
+        }
+
+        uiState.hasError -> {
+            ErrorScreen(
+                mensaje = "No se pudieron cargar los personajes",
+                onRetry = viewModel::loadCharacters
+            )
+        }
+
+
+
+        else -> {
+            CharacterScreenContent(
+                personajesData = uiState.data,
+                navController = navController
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterScreen(navController: NavController) {
+fun CharacterScreenContent(personajesData: List<PersonajeDatos>, navController: NavController) {
     val activity = LocalContext.current as? Activity
 
     Scaffold(
@@ -76,7 +115,7 @@ fun CharacterScreen(navController: NavController) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             items(
-                items = personajes,
+                items = personajesData,
                 key = { personaje -> personaje.id }
             ) { personaje ->
                 Card(

@@ -41,7 +41,8 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navigation
-import com.example.movilab7.characters.CharacterScreen
+import com.example.movilab7.characters.CharacterDetailScreen
+import com.example.movilab7.characters.CharactersScreen
 import com.example.movilab7.characters.PersonajeScreen
 import com.example.movilab7.locations.LocationDetailScreen
 import com.example.movilab7.locations.LocationsScreen
@@ -106,7 +107,7 @@ data class LocationID(val id: Int)
 @Serializable
 data object Profile
 
-val locationDb = LocationDb()
+var locationDb = LocationDb()
 
 
 
@@ -207,7 +208,7 @@ fun HomeScreen() {
                 startDestination = Characters
             ) {
                 composable<Characters> {
-                    CharacterScreen(navController)
+                    CharactersScreen(navController)
                 }
 
                 composable<PersonajeID> { entry ->
@@ -217,7 +218,7 @@ fun HomeScreen() {
                         it.id == ruta.id
                     }
 
-                    PersonajeScreen(personaje, navController)
+                    CharacterDetailScreen( navController)
                 }
             }
 
@@ -226,7 +227,7 @@ fun HomeScreen() {
                 startDestination = Locations
             ) {
                 composable<Locations> {
-                    LocationsScreen(locationDb.getAllLocations(), navController)
+                    LocationsScreen(navController)
                 }
 
                 composable<LocationID> { entry ->
@@ -234,14 +235,14 @@ fun HomeScreen() {
 
                     val location = locationDb.getLocationById(ruta.id)
 
-                    LocationDetailScreen(location, navController)
+                    LocationDetailScreen( navController)
 
                 }
 
-                // Pantalla independiente
-                composable<Profile> {
-                    PerfilScreen(navController)
-                }
+            }
+            // Pantalla independiente
+            composable<Profile> {
+                PerfilScreen(navController)
             }
         }
     }

@@ -32,7 +32,6 @@ import androidx.navigation.NavController
 
 @Composable
 fun PerfilScreen(navController: NavController) {
-    val activity = LocalContext.current as? Activity
 
     Column(modifier=Modifier
         .fillMaxSize()
@@ -78,7 +77,11 @@ Spacer(modifier = Modifier.padding(10.dp))
             .weight(4f)
             , contentAlignment = Alignment.TopCenter) {
             Button(onClick = {
-                    activity?.finish()
+                    navController.navigate(Login){
+                        popUpTo<Login> {
+                            inclusive = true
+                        }
+                    }
             }, modifier = Modifier
                 .width(250.dp)
                 .background(shape = CircleShape, color = MaterialTheme.colorScheme.primary)
