@@ -1,6 +1,7 @@
 package com.example.movilab7
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -36,6 +37,11 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.runtime.getValue
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -49,6 +55,7 @@ import com.example.movilab7.characters.Characters
 import com.example.movilab7.characters.PersonajeScreen
 
 import com.example.movilab7.characters.PersonajeID
+import com.example.movilab7.components.LoadingScreen
 import com.example.movilab7.locations.ui.LocationDetailScreen
 import com.example.movilab7.locations.ui.LocationsScreen
 import com.example.movilab7.locations.ui.Locations
@@ -66,6 +73,9 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+
+
 
 val personajes = listOf<PersonajeDatos>(
     PersonajeDatos(
@@ -89,25 +99,39 @@ data object CharactersGraph
 @Serializable
 data object LocationsGraph
 
-
-
-
-
-
 var locationDb = LocationDb()
-
-
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Preview(showBackground = true)
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    sessionViewModel: SessionViewModel = viewModel()
+) {
+    val sessionState = sessionViewModel.uiState
+        .collectAsStateWithLifecycle()
+        .value
+
+    if (sessionState.isLoading) {
+        LoadingScreen(
+            mensaje = "Iniciando...",
+            onClick = {}
+        )
+
+        return
+    }
+
     val navController = rememberNavController()
 
-    val backStackEntry by navController.currentBackStackEntryAsState()
-    val destinoActual = backStackEntry?.destination
+    val startRoute: Any =
+        if (sessionState.data) {
+            CharactersGraph
+        } else {
+            Login
+        }
+
+        val backStackEntry by navController.currentBackStackEntryAsState()
+        val destinoActual = backStackEntry?.destination
 
     val mostrarBarra = destinoActual != null &&
             !destinoActual.hasRoute<Login>()
@@ -180,17 +204,12 @@ fun HomeScreen() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Login,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding)
+            startDestination = startRoute
         ) {
             composable<Login> {
                 LoginScreen(navController)
             }
 
-            // Subgrafo de Characters
             navigation<CharactersGraph>(
                 startDestination = Characters
             ) {

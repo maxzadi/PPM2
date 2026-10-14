@@ -18,8 +18,11 @@ lifecycleViewmodelKtx = "2.11.0"
 material = "1.4.+"
 fragmentKtx = "1.5.6"
 navigationRuntimeKtx = "2.10.2"
+dataStore = "1.2.1"
+
 
 [libraries]
+androidx-datastore = {group = "androidx.datastore", name = "datastore-preferences", version.ref = "dataStore"}
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
