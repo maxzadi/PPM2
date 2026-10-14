@@ -1,11 +1,11 @@
-package com.example.movilab7.locations
+package com.example.movilab7.locations.ui
 
-import LocationDb
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.example.movilab7.LocationID
+import com.example.movilab7.locations.data.Location
+import com.example.movilab7.locations.data.LocationDb
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -73,7 +73,7 @@ class LocationDetailViewModel(
                             hasError = false
                         )
                 }
-            } catch (exception: Exception) {
+            } catch (_: Exception) {
                 _uiState.value =
                     LocationDetailUiState(
                         isLoading = false,

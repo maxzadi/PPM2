@@ -1,6 +1,6 @@
 package com.example.movilab7.characters
 
-import com.example.movilab7.PersonajeDatos
+import com.example.movilab7.characters.data.PersonajeDatos
 
 data class CharactersUiState(
     val isLoading: Boolean = false,

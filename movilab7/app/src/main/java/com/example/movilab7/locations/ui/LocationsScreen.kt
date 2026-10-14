@@ -1,4 +1,4 @@
-package com.example.movilab7.locations
+package com.example.movilab7.locations.ui
 
 import android.app.Activity
 import androidx.compose.foundation.clickable
@@ -31,10 +31,13 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.movilab7.LocationID
-import com.example.movilab7.locationDb
 import com.example.movilab7.components.ErrorScreen
 import com.example.movilab7.components.LoadingScreen
+import com.example.movilab7.locations.data.Location
+import kotlinx.serialization.Serializable
+
+@Serializable
+data object Locations
 
 @Composable
 fun LocationsScreen(

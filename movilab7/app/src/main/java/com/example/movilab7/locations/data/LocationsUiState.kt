@@ -1,6 +1,4 @@
-package com.example.movilab7.locations
-
-import com.example.movilab7.locations.Location
+package com.example.movilab7.locations.data
 
 data class LocationsUiState(
     val isLoading: Boolean = true,

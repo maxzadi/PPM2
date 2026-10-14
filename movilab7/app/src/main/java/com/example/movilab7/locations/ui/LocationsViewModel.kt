@@ -1,15 +1,15 @@
-package com.example.movilab7.locations
+package com.example.movilab7.locations.ui
 
-import LocationDb
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.movilab7.locations.data.LocationDb
+import com.example.movilab7.locations.data.LocationsUiState
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 class LocationsViewModel : ViewModel() {
 

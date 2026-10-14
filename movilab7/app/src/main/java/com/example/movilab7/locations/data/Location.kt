@@ -1,4 +1,4 @@
-package com.example.movilab7.locations
+package com.example.movilab7.locations.data
 
 data class Location(
     val id: Int,

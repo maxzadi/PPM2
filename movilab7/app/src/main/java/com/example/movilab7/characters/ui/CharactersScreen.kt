@@ -36,11 +36,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.example.movilab7.PersonajeDatos
-import com.example.movilab7.PersonajeID
-import com.example.movilab7.personajes
+import com.example.movilab7.characters.data.PersonajeDatos
 import com.example.movilab7.components.ErrorScreen
 import com.example.movilab7.components.LoadingScreen
+import kotlinx.serialization.Serializable
+
+@Serializable
+data object Characters
+
+
 
 @Composable
 fun CharactersScreen(

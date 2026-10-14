@@ -4,8 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
-import com.example.movilab7.PersonajeDatos
-import com.example.movilab7.PersonajeID
+import com.example.movilab7.characters.data.PersonajeDatos
 import com.example.movilab7.personajes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

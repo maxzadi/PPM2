@@ -1,6 +1,4 @@
-import com.example.movilab7.locations.Location
-
-// import .....Location
+package com.example.movilab7.locations.data
 
 class LocationDb {
     private val locations: List<Location> = listOf(
@@ -30,7 +28,7 @@ class LocationDb {
         return locations
     }
 
-    fun getLocationById(id: Int): Location {
-        return locations.first { it.id == id }
+    fun getLocationById(id: Int): Location? {
+        return locations.firstOrNull { it.id == id }
     }
 }

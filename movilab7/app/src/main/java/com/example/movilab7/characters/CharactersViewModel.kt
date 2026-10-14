@@ -2,7 +2,7 @@ package com.example.movilab7.characters
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.movilab7.PersonajeDatos
+import com.example.movilab7.characters.data.PersonajeDatos
 import com.example.movilab7.personajes
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

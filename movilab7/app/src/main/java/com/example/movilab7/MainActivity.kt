@@ -1,6 +1,5 @@
 package com.example.movilab7
 
-import LocationDb
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -41,11 +40,20 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navigation
+
+
 import com.example.movilab7.characters.CharacterDetailScreen
 import com.example.movilab7.characters.CharactersScreen
+import com.example.movilab7.characters.data.PersonajeDatos
+import com.example.movilab7.characters.Characters
 import com.example.movilab7.characters.PersonajeScreen
-import com.example.movilab7.locations.LocationDetailScreen
-import com.example.movilab7.locations.LocationsScreen
+
+import com.example.movilab7.characters.PersonajeID
+import com.example.movilab7.locations.ui.LocationDetailScreen
+import com.example.movilab7.locations.ui.LocationsScreen
+import com.example.movilab7.locations.ui.Locations
+import com.example.movilab7.locations.ui.LocationID
+import com.example.movilab7.locations.data.LocationDb
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,30 +67,15 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-//Rutas
-@Serializable
-data object Login
-
-@Serializable
-data object Characters
-
-@Serializable
-data class PersonajeID(
-    val id: Int
-)
-
-data class PersonajeDatos(
-    val id: Int,
-    val nombre: String,
-    val especie: String,
-    val status: String,
-    val imagen: String,
-    val genero: String
-
-)
-
 val personajes = listOf<PersonajeDatos>(
-    PersonajeDatos(1,"Rick Sanchez", "Humano", "Vivo", "https://rickandmortyapi.com/api/character/avatar/1.jpeg", "Masculino"),
+    PersonajeDatos(
+        1,
+        "Rick Sanchez",
+        "Humano",
+        "Vivo",
+        "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
+        "Masculino"
+    ),
     PersonajeDatos(2,"Morty Smith", "Humano", "Vivo", "https://rickandmortyapi.com/api/character/avatar/2.jpeg", "Masculino"),
     PersonajeDatos(3,"Summer Smith", "Humano", "Vivo", "https://rickandmortyapi.com/api/character/avatar/3.jpeg", "Femenino"),
     PersonajeDatos(4,"Beth Smith", "Humano", "Vivo", "https://rickandmortyapi.com/api/character/avatar/4.jpeg", "Femenino"),
@@ -90,22 +83,16 @@ val personajes = listOf<PersonajeDatos>(
     PersonajeDatos(6,"Abadango Cluster Princess", "Alien", "Vivo", "https://rickandmortyapi.com/api/character/avatar/6.jpeg", "Femenino")
 )
 
-//Lab8
-
 @Serializable
 data object CharactersGraph
 
 @Serializable
 data object LocationsGraph
 
-@Serializable
-data object Locations
 
-@Serializable
-data class LocationID(val id: Int)
 
-@Serializable
-data object Profile
+
+
 
 var locationDb = LocationDb()
 
