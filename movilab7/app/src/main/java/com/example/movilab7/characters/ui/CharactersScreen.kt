@@ -36,10 +36,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import com.example.movilab7.characters.data.PersonajeDatos
+import com.example.movilab7.characters.ui.CharactersViewModel
 import com.example.movilab7.components.ErrorScreen
 import com.example.movilab7.components.LoadingScreen
 import kotlinx.serialization.Serializable
+import com.example.movilab7.core.room.Character
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 
 @Serializable
 data object Characters
@@ -49,8 +52,7 @@ data object Characters
 @Composable
 fun CharactersScreen(
     navController: NavController,
-    viewModel: CharactersViewModel = viewModel()
-
+    viewModel: CharactersViewModel
 ) {
     val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
 
@@ -69,12 +71,11 @@ fun CharactersScreen(
             )
         }
 
-
-
         else -> {
             CharacterScreenContent(
                 personajesData = uiState.data,
-                navController = navController
+                navController = navController,
+                onFavoritoClick = viewModel::cambiarFavorito
             )
         }
     }
@@ -82,7 +83,11 @@ fun CharactersScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CharacterScreenContent(personajesData: List<PersonajeDatos>, navController: NavController) {
+fun CharacterScreenContent(
+    personajesData: List<Character>,
+    navController: NavController,
+    onFavoritoClick: (Int, Boolean) -> Unit
+) {
     val activity = LocalContext.current as? Activity
 
     Scaffold(
@@ -90,23 +95,26 @@ fun CharacterScreenContent(personajesData: List<PersonajeDatos>, navController: 
             TopAppBar(
                 title = {
                     Text("Characters")
-                }, navigationIcon = {
-                    IconButton(onClick = {
-                        if (!navController.popBackStack()) {
-                            activity?.finish()
+                },
+                navigationIcon = {
+                    IconButton(
+                        onClick = {
+                            if (!navController.popBackStack()) {
+                                activity?.finish()
+                            }
                         }
-                    }) {
+                    ) {
                         Icon(
-                            imageVector =
-                                Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Regresar"
                         )
                     }
-                }, colors = TopAppBarDefaults.topAppBarColors(
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
-                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
+                    navigationIconContentColor =
+                        MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
@@ -126,11 +134,12 @@ fun CharacterScreenContent(personajesData: List<PersonajeDatos>, navController: 
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            navController.navigate(PersonajeID(id = personaje.id))
+                            navController.navigate(
+                                PersonajeID(id = personaje.id)
+                            )
                         },
                     colors = CardDefaults.cardColors(
-                        containerColor =
-                            MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
                     Row(
@@ -142,7 +151,7 @@ fun CharacterScreenContent(personajesData: List<PersonajeDatos>, navController: 
                         AsyncImage(
                             model = personaje.imagen,
                             contentDescription =
-                                "Imagen de ${personaje.nombre}",
+                                "Imagen de ${personaje.nombre ?: "personaje"}",
                             modifier = Modifier
                                 .size(80.dp)
                                 .clip(RoundedCornerShape(12.dp)),
@@ -155,16 +164,41 @@ fun CharacterScreenContent(personajesData: List<PersonajeDatos>, navController: 
                                 .padding(start = 12.dp)
                         ) {
                             Text(
-                                text = personaje.nombre,
-                                style =
-                                    MaterialTheme.typography.titleMedium
+                                text = personaje.nombre ?: "Sin nombre",
+                                style = MaterialTheme.typography.titleMedium
                             )
 
                             Text(
-                                text =
-                                    "${personaje.especie} - ${personaje.status}",
-                                style =
-                                    MaterialTheme.typography.bodyMedium
+                                text = "${personaje.especie ?: "Desconocida"} - " +
+                                        (personaje.status ?: "Desconocido"),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+
+                        IconButton(
+                            onClick = {
+                                onFavoritoClick(
+                                    personaje.id,
+                                    !personaje.favorito
+                                )
+                            }
+                        ) {
+                            Icon(
+                                imageVector = if (personaje.favorito) {
+                                    Icons.Default.Favorite
+                                } else {
+                                    Icons.Default.FavoriteBorder
+                                },
+                                contentDescription = if (personaje.favorito) {
+                                    "Quitar de favoritos"
+                                } else {
+                                    "Agregar a favoritos"
+                                },
+                                tint = if (personaje.favorito) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     }

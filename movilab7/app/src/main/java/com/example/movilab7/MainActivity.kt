@@ -46,36 +46,49 @@ import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navigation
+import androidx.room.Room
 
 
 import com.example.movilab7.characters.CharacterDetailScreen
 import com.example.movilab7.characters.CharactersScreen
 import com.example.movilab7.characters.data.PersonajeDatos
 import com.example.movilab7.characters.Characters
+import com.example.movilab7.characters.CharactersViewModelFactory
+import com.example.movilab7.characters.ui.CharactersViewModel
 import com.example.movilab7.characters.PersonajeScreen
 
 import com.example.movilab7.characters.PersonajeID
 import com.example.movilab7.components.LoadingScreen
+import com.example.movilab7.core.AppDatabase
 import com.example.movilab7.locations.ui.LocationDetailScreen
 import com.example.movilab7.locations.ui.LocationsScreen
 import com.example.movilab7.locations.ui.Locations
 import com.example.movilab7.locations.ui.LocationID
 import com.example.movilab7.locations.data.LocationDb
+import com.example.movilab7.locations.ui.LocationsViewModel
+import com.example.movilab7.locations.ui.LocationsViewModelFactory
 
 class MainActivity : ComponentActivity() {
+
+    private val database: AppDatabase by lazy {
+        Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java,
+            "uvg.db"
+        ).build()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
         setContent {
-            Movilab7Theme() {
-                HomeScreen()
+            Movilab7Theme {
+                HomeScreen(database = database)
             }
         }
     }
 }
-
-
-
 
 val personajes = listOf<PersonajeDatos>(
     PersonajeDatos(
@@ -103,9 +116,9 @@ var locationDb = LocationDb()
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Preview(showBackground = true)
 @Composable
 fun HomeScreen(
+    database: AppDatabase,
     sessionViewModel: SessionViewModel = viewModel()
 ) {
     val sessionState = sessionViewModel.uiState
@@ -214,7 +227,13 @@ fun HomeScreen(
                 startDestination = Characters
             ) {
                 composable<Characters> {
-                    CharactersScreen(navController)
+                    val charactersViewModel: CharactersViewModel = viewModel(
+                        factory = CharactersViewModelFactory(
+                            database.characterDao()
+                        )
+                    )
+                    CharactersScreen(navController,
+                        charactersViewModel)
                 }
 
                 composable<PersonajeID> { entry ->
@@ -233,7 +252,14 @@ fun HomeScreen(
                 startDestination = Locations
             ) {
                 composable<Locations> {
-                    LocationsScreen(navController)
+                    val locationsViewModel: LocationsViewModel = viewModel(
+                        factory = LocationsViewModelFactory(
+                            database.locationDao()
+                        )
+                    )
+
+                    LocationsScreen(navController,
+                        locationsViewModel)
                 }
 
                 composable<LocationID> { entry ->

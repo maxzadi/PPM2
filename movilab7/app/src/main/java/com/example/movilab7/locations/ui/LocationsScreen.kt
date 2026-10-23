@@ -33,7 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.movilab7.components.ErrorScreen
 import com.example.movilab7.components.LoadingScreen
-import com.example.movilab7.locations.data.Location
+import com.example.movilab7.core.room.LocationEntity
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -74,7 +74,7 @@ fun LocationsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationsScreenContent(locationDb: List<Location>, navController: NavController) {
+fun LocationsScreenContent(locationDb: List<LocationEntity>, navController: NavController) {
     val activity = LocalContext.current as? Activity
 
     Scaffold(
@@ -138,14 +138,14 @@ fun LocationsScreenContent(locationDb: List<Location>, navController: NavControl
                                 .padding(start = 12.dp)
                         ) {
                             Text(
-                                text = location.name,
+                                text = location.name!!,
                                 style =
                                     MaterialTheme.typography.titleMedium
                             )
 
                             Text(
                                 text =
-                                    location.type,
+                                    location.type!!,
                                 style =
                                     MaterialTheme.typography.bodyMedium
                             )
