@@ -31,7 +31,7 @@ data object Login
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: LoginViewModel = viewModel()
+    viewModel: LoginViewModel
 ) {
     val uiState = viewModel.uiState
         .collectAsStateWithLifecycle()
@@ -75,9 +75,9 @@ fun LoginScreen(
                     Text("Escribe tu nombre")
                 },
                 supportingText = {
-                    if (uiState.hasError) {
+                    uiState.errorMessage?.let { mensaje ->
                         Text(
-                            text = "Debes escribir tu nombre",
+                            text = mensaje,
                             color = MaterialTheme.colorScheme.error
                         )
                     }

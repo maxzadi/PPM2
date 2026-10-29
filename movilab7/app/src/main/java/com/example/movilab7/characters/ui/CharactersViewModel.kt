@@ -42,22 +42,16 @@ class CharactersViewModel(
                 )
             }
 
-            delay(3000)
-
             try {
-                // Inserta los personajes que todavía no existen.
-                characterDao.insertInitialCharacters(
-                    personajes.map { it.toEntity() }
-                )
 
-                // Observa los datos guardados en Room.
-                characterDao.getCharacters().collect { lista ->
+                characterDao.getCharacters().collect { personajes ->
                     _uiState.value = CharactersUiState(
                         isLoading = false,
-                        data = lista,
+                        data = personajes,
                         hasError = false
                     )
                 }
+
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {

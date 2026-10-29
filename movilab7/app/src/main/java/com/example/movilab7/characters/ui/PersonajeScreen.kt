@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +38,7 @@ import com.example.movilab7.characters.data.PersonajeDatos
 import com.example.movilab7.components.ErrorScreen
 import com.example.movilab7.components.LoadingScreen
 import kotlinx.serialization.Serializable
+import com.example.movilab7.core.room.Character
 
 @Serializable
 data class PersonajeID(
@@ -68,10 +71,11 @@ fun CharacterDetailScreen(
             )
         }
 
-        uiState.data != null -> {
+        else -> {
             PersonajeScreen(
                 personaje = uiState.data,
-                navController = navController
+                navController = navController,
+                onFavoritoClick = viewModel::cambiarFavorito
             )
         }
     }
@@ -79,7 +83,11 @@ fun CharacterDetailScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PersonajeScreen(personaje: PersonajeDatos?, navController: NavController) {
+fun PersonajeScreen(
+    personaje: Character?,
+    navController: NavController,
+    onFavoritoClick: () -> Unit
+) {
 
     if (personaje == null) {
         Box(
@@ -111,7 +119,23 @@ fun PersonajeScreen(personaje: PersonajeDatos?, navController: NavController) {
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    IconButton(onClick = onFavoritoClick) {
+                        Icon(
+                            imageVector = if (personaje.favorito) {
+                                Icons.Default.Favorite
+                            } else {
+                                Icons.Default.FavoriteBorder
+                            },
+                            contentDescription = if (personaje.favorito) {
+                                "Quitar de favoritos"
+                            } else {
+                                "Agregar a favoritos"
+                            }
+                        )
+                    }
+                },
             )
         }
     ) {innerPadding ->
@@ -150,9 +174,9 @@ fun PersonajeScreen(personaje: PersonajeDatos?, navController: NavController) {
                 Column(modifier = Modifier.weight(1f),
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(15.dp)) {
-                    Text(personaje.especie)
-                    Text(personaje.status)
-                    Text(personaje.genero)
+                    Text(personaje.especie ?: "Desconocida")
+                    Text(personaje.status ?: "Desconocido")
+                    Text(personaje.genero ?: "Desconocido")
                 }
             }
             }

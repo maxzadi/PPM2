@@ -54,11 +54,30 @@ suspend fun Context.clearUserData() {
     dataStore.edit { preferences ->
         preferences.remove(nombreKey)
         preferences[sesionIniciadaKey] = false
+        preferences[sincronizacionCompletaKey] = false
     }
 }
+
 suspend fun Context.getSesion(): Boolean {
     val preferences =
         dataStore.data.first()
 
     return preferences[sesionIniciadaKey] ?: false
 }
+
+private val sincronizacionCompletaKey =
+    booleanPreferencesKey("sincronizacion_completa")
+
+suspend fun Context.getSincronizacionCompleta(): Boolean {
+    val preferences = dataStore.data.first()
+    return preferences[sincronizacionCompletaKey] ?: false
+}
+
+suspend fun Context.completarLogin(nombre: String) {
+    dataStore.edit { preferences ->
+        preferences[nombreKey] = nombre
+        preferences[sesionIniciadaKey] = true
+        preferences[sincronizacionCompletaKey] = true
+    }
+}
+

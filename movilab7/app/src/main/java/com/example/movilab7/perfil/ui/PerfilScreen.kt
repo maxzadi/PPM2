@@ -37,25 +37,14 @@ data object Profile
 @Composable
 fun PerfilScreen(
     navController: NavController,
-    viewModel: PerfilViewModel = viewModel()
+    viewModel: PerfilViewModel = viewModel(),
+    cerrandoSesion: Boolean,
+    errorCierre: String?,
+    onCerrarSesion: () -> Unit
 ) {
     val uiState = viewModel.uiState
         .collectAsStateWithLifecycle()
         .value
-
-    LaunchedEffect(
-        uiState.data.cierreSesionExitoso
-    ) {
-        if (uiState.data.cierreSesionExitoso) {
-            navController.navigate(Login) {
-                popUpTo(navController.graph.id) {
-                    inclusive = true
-                }
-
-                launchSingleTop = true
-            }
-        }
-    }
 
     when {
         uiState.isLoading -> {
@@ -75,7 +64,9 @@ fun PerfilScreen(
         else -> {
             PerfilContent(
                 nombre = uiState.data.nombre,
-                onCerrarSesion = viewModel::cerrarSesion
+                cerrandoSesion = cerrandoSesion,
+                errorCierre = errorCierre,
+                onCerrarSesion = onCerrarSesion
             )
         }
     }
@@ -83,6 +74,8 @@ fun PerfilScreen(
 @Composable
 fun PerfilContent(
     nombre: String,
+    cerrandoSesion: Boolean,
+    errorCierre: String?,
     onCerrarSesion: () -> Unit
 ) {
     Column(
@@ -153,10 +146,25 @@ fun PerfilContent(
 
         Button(
             onClick = onCerrarSesion,
+            enabled = !cerrandoSesion,
             modifier = Modifier.width(250.dp),
             shape = CircleShape
         ) {
-            Text("Cerrar sesión")
+            Text(
+                text = if (cerrandoSesion) {
+                    "Cerrando sesión..."
+                } else {
+                    "Cerrar sesión"
+                }
+            )
+        }
+
+        errorCierre?.let { mensaje ->
+            Text(
+                text = mensaje,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.padding(16.dp)
+            )
         }
 
         Spacer(

@@ -29,6 +29,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.movilab7.components.LoadingScreen
 import com.example.movilab7.components.ErrorScreen
+import com.example.movilab7.core.room.LocationEntity
 import com.example.movilab7.locations.data.Location
 import kotlinx.serialization.Serializable
 
@@ -38,7 +39,7 @@ data class LocationID(val id: Int)
 @Composable
 fun LocationDetailScreen(
     navController: NavController,
-    viewModel: LocationDetailViewModel = viewModel()
+    viewModel: LocationDetailViewModel
 ) {
     val uiState = viewModel.uiState
         .collectAsStateWithLifecycle()
@@ -59,7 +60,7 @@ fun LocationDetailScreen(
             )
         }
 
-        uiState.data != null -> {
+        else -> {
             LocationDetailContent(
                 location = uiState.data,
                 navController = navController
@@ -70,7 +71,10 @@ fun LocationDetailScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LocationDetailContent(location: Location?, navController: NavController) {
+fun LocationDetailContent(
+    location: LocationEntity?,
+    navController: NavController
+) {
 
     if (location == null) {
         Box(
@@ -124,7 +128,10 @@ fun LocationDetailContent(location: Location?, navController: NavController) {
                         MaterialTheme.colorScheme.surface
                 )
             ){
-                Text(location.name, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = location.name ?: "Sin nombre",
+                    style = MaterialTheme.typography.titleMedium
+                )
                 Row(modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center) {
                 Column(modifier = Modifier.weight(1f),
@@ -137,8 +144,8 @@ fun LocationDetailContent(location: Location?, navController: NavController) {
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.spacedBy(15.dp)) {
                     Text(location.id.toString())
-                    Text(location.type)
-                    Text(location.dimension)
+                    Text(location.type ?: "Desconocido")
+                    Text(location.dimension ?: "Desconocida")
                 }
             }
             }

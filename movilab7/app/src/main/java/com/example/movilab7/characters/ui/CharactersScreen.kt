@@ -3,6 +3,7 @@ package com.example.movilab7.characters
 import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -43,6 +44,11 @@ import kotlinx.serialization.Serializable
 import com.example.movilab7.core.room.Character
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 
 @Serializable
 data object Characters
@@ -54,7 +60,9 @@ fun CharactersScreen(
     navController: NavController,
     viewModel: CharactersViewModel
 ) {
-    val uiState = viewModel.uiState.collectAsStateWithLifecycle().value
+    val uiState = viewModel.uiState
+        .collectAsStateWithLifecycle()
+        .value
 
     when {
         uiState.isLoading -> {
@@ -90,6 +98,16 @@ fun CharacterScreenContent(
 ) {
     val activity = LocalContext.current as? Activity
 
+    var soloFavoritos by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    val personajesVisibles = if (soloFavoritos) {
+        personajesData.filter { it.favorito }
+    } else {
+        personajesData
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -115,7 +133,19 @@ fun CharacterScreenContent(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor =
                         MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                actions = {
+                    TextButton(
+                        onClick = {
+                            soloFavoritos = !soloFavoritos
+                        }
+                    ) {
+                        Text(
+                            text = if (soloFavoritos) "Ver todos" else "Ver favoritos",
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
+                    }
+                },
             )
         }
     ) { innerPadding ->
@@ -126,8 +156,26 @@ fun CharacterScreenContent(
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (personajesVisibles.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(32.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            if (soloFavoritos) {
+                                "No hay favoritos para mostrar"
+                            } else {
+                                "No hay elementos para mostrar"
+                            }
+                        )
+                    }
+                }
+            }
             items(
-                items = personajesData,
+                items = personajesVisibles,
                 key = { personaje -> personaje.id }
             ) { personaje ->
                 Card(

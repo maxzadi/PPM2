@@ -66,10 +66,6 @@ class LocationsViewModel(
                     it.toEntity()
                 }
 
-                // Guardar únicamente las ubicaciones que no existen.
-                locationDao.insertInitialLocationEntitys(locationsIniciales)
-
-                // Mostrar y observar los datos de Room.
                 locationDao.getLocationEntitys().collect { locations ->
                     _uiState.value = LocationsUiState(
                         isLoading = false,

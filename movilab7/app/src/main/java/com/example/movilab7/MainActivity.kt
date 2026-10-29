@@ -1,6 +1,7 @@
 package com.example.movilab7
 
 import android.annotation.SuppressLint
+import android.app.Application
 import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -36,12 +37,16 @@ import androidx.compose.material.icons.filled.PeopleAlt
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -50,6 +55,8 @@ import androidx.room.Room
 
 
 import com.example.movilab7.characters.CharacterDetailScreen
+import com.example.movilab7.characters.CharacterDetailViewModel
+import com.example.movilab7.characters.CharacterDetailViewModelFactory
 import com.example.movilab7.characters.CharactersScreen
 import com.example.movilab7.characters.data.PersonajeDatos
 import com.example.movilab7.characters.Characters
@@ -65,6 +72,8 @@ import com.example.movilab7.locations.ui.LocationsScreen
 import com.example.movilab7.locations.ui.Locations
 import com.example.movilab7.locations.ui.LocationID
 import com.example.movilab7.locations.data.LocationDb
+import com.example.movilab7.locations.ui.LocationDetailViewModel
+import com.example.movilab7.locations.ui.LocationDetailViewModelFactory
 import com.example.movilab7.locations.ui.LocationsViewModel
 import com.example.movilab7.locations.ui.LocationsViewModelFactory
 
@@ -161,6 +170,11 @@ fun HomeScreen(
         }
     }
 
+    val application =
+        LocalContext.current.applicationContext as Application
+
+    val appContext = LocalContext.current.applicationContext
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         bottomBar = {
@@ -220,7 +234,17 @@ fun HomeScreen(
             startDestination = startRoute
         ) {
             composable<Login> {
-                LoginScreen(navController)
+                val loginViewModel: LoginViewModel = viewModel(
+                    factory = LoginViewModelFactory(
+                        application = application,
+                        database = database
+                    )
+                )
+
+                LoginScreen(
+                    navController = navController,
+                    viewModel = loginViewModel
+                )
             }
 
             navigation<CharactersGraph>(
@@ -239,11 +263,17 @@ fun HomeScreen(
                 composable<PersonajeID> { entry ->
                     val ruta = entry.toRoute<PersonajeID>()
 
-                    val personaje = personajes.firstOrNull {
-                        it.id == ruta.id
-                    }
+                    val detailViewModel: CharacterDetailViewModel = viewModel(
+                        factory = CharacterDetailViewModelFactory(
+                            characterDao = database.characterDao(),
+                            id = ruta.id
+                        )
+                    )
 
-                    CharacterDetailScreen( navController)
+                    CharacterDetailScreen(
+                        navController = navController,
+                        viewModel = detailViewModel
+                    )
                 }
             }
 
@@ -265,16 +295,54 @@ fun HomeScreen(
                 composable<LocationID> { entry ->
                     val ruta = entry.toRoute<LocationID>()
 
-                    val location = locationDb.getLocationById(ruta.id)
+                    val detailViewModel: LocationDetailViewModel = viewModel(
+                        factory = LocationDetailViewModelFactory(
+                            locationDao = database.locationDao(),
+                            id = ruta.id
+                        )
+                    )
 
-                    LocationDetailScreen( navController)
-
+                    LocationDetailScreen(
+                        navController = navController,
+                        viewModel = detailViewModel
+                    )
                 }
 
             }
             // Pantalla independiente
             composable<Profile> {
-                PerfilScreen(navController)
+                val cerrarSesionViewModel: LogoutViewModel = viewModel(
+                    factory = viewModelFactory {
+                        initializer {
+                            LogoutViewModel(
+                                context = appContext,
+                                database = database
+                            )
+                        }
+                    }
+                )
+
+                val cierre = cerrarSesionViewModel.uiState
+                    .collectAsStateWithLifecycle()
+                    .value
+
+                LaunchedEffect(cierre.completado) {
+                    if (cierre.completado) {
+                        navController.navigate(Login) {
+                            popUpTo(navController.graph.id) {
+                                inclusive = true
+                            }
+                            launchSingleTop = true
+                        }
+                    }
+                }
+
+                PerfilScreen(
+                    navController = navController,
+                    cerrandoSesion = cierre.isLoading,
+                    errorCierre = cierre.error,
+                    onCerrarSesion = cerrarSesionViewModel::cerrarSesion
+                )
             }
         }
     }

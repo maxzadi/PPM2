@@ -1,80 +1,62 @@
 package com.example.movilab7.characters
 
-import androidx.lifecycle.SavedStateHandle
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.toRoute
-import com.example.movilab7.characters.data.PersonajeDatos
-import com.example.movilab7.personajes
+import com.example.movilab7.core.room.Character
+import com.example.movilab7.core.room.CharacterDao
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 data class CharacterDetailUiState(
     val isLoading: Boolean = true,
-    val data: PersonajeDatos? = null,
+    val data: Character? = null,
     val hasError: Boolean = false
 )
 
 class CharacterDetailViewModel(
-    savedStateHandle: SavedStateHandle
+    private val characterDao: CharacterDao,
+    private val id: Int
 ) : ViewModel() {
 
+    private val _uiState = MutableStateFlow(CharacterDetailUiState())
+    val uiState = _uiState.asStateFlow()
 
     private var loadJob: Job? = null
-
-    private val route =
-        savedStateHandle.toRoute<PersonajeID>()
-
-    private val characterId: Int = route.id
-
-    private val _uiState = MutableStateFlow(
-        CharacterDetailUiState()
-    )
-
-    val uiState: StateFlow<CharacterDetailUiState> =
-        _uiState.asStateFlow()
 
     init {
         loadCharacter()
     }
 
     fun loadCharacter() {
-        loadJob = viewModelScope.launch {
-            _uiState.value = CharacterDetailUiState(
-                isLoading = true,
-                data = null,
-                hasError = false
-            )
+        loadJob?.cancel()
 
-            delay(2000.milliseconds)
+        loadJob = viewModelScope.launch {
+            _uiState.value = CharacterDetailUiState(isLoading = true)
 
             try {
-                val character = personajes.firstOrNull {
-                    it.id == characterId
-                }
-
-                if (character == null) {
+                characterDao.getCharacterById(id).collect { personaje ->
                     _uiState.value = CharacterDetailUiState(
                         isLoading = false,
-                        data = null,
-                        hasError = true
-                    )
-                } else {
-                    _uiState.value = CharacterDetailUiState(
-                        isLoading = false,
-                        data = character,
-                        hasError = false
+                        data = personaje
                     )
                 }
+            } catch (exception: CancellationException) {
+                throw exception
             } catch (exception: Exception) {
+                Log.e(
+                    "CharacterDetailVM",
+                    "Error al consultar el personaje",
+                    exception
+                )
+
                 _uiState.value = CharacterDetailUiState(
                     isLoading = false,
-                    data = null,
                     hasError = true
                 )
             }
@@ -86,8 +68,43 @@ class CharacterDetailViewModel(
 
         _uiState.value = CharacterDetailUiState(
             isLoading = false,
-            data = null,
             hasError = true
         )
+    }
+
+    fun cambiarFavorito() {
+        val personaje = _uiState.value.data ?: return
+
+        viewModelScope.launch {
+            try {
+                characterDao.updateFavorito(
+                    id = personaje.id,
+                    favorito = !personaje.favorito
+                )
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                Log.e("CharacterDetailVM", "Error al guardar favorito", exception)
+
+                _uiState.value = _uiState.value.copy(
+                    hasError = true
+                )
+            }
+        }
+    }
+}
+
+class CharacterDetailViewModelFactory(
+    private val characterDao: CharacterDao,
+    private val id: Int
+) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(CharacterDetailViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return CharacterDetailViewModel(characterDao, id) as T
+        }
+
+        throw IllegalArgumentException("ViewModel desconocido")
     }
 }
